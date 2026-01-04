@@ -10,7 +10,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "حكي وتعلم - نظام إدارة العلاج الطبي",
+  title: "حقي وتعلم - نظام إدارة العلاج الطبي",
   description: "منصة متكاملة لإدارة علاج الأطفال في مراكز التخاطب",
 };
 
@@ -21,6 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <link rel="icon" href="/logo.png" />
+      </head>
       <body className={`${cairo.variable} antialiased`}>
         {children}
       </body>

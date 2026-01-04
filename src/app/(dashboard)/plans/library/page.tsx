@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -142,11 +144,11 @@ export default function PlansLibraryPage() {
                   </p>
                 </div>
 
-                <Link href={`/children/${plan.child.id}/plans/${plan.id}`}>
-                  <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={`/children/${plan.child.id}/plans/${plan.id}`}>
                     عرض الخطة
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </Card>
             </motion.div>
           ))}

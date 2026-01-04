@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,19 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { childFormSchema, type ChildFormValues } from "@/lib/utils/validators";
+
+function CancelButton({ isLoading, onCancel }: { isLoading: boolean; onCancel: () => void }) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      disabled={isLoading}
+      onClick={onCancel}
+    >
+      إلغاء
+    </Button>
+  );
+}
 
 export default function NewChildPage() {
   const router = useRouter();
@@ -198,14 +213,7 @@ export default function NewChildPage() {
             />
 
             <div className="flex gap-4 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isLoading}
-              >
-                إلغاء
-              </Button>
+              <CancelButton isLoading={isLoading} onCancel={() => router.back()} />
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "جاري الإضافة..." : "إضافة الطفل"}
               </Button>
