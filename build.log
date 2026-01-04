@@ -1,0 +1,35 @@
+
+> 7aky-at3alam@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Found 1 warning while optimizing generated CSS:
+
+[2m│   initial-value: 0;[22m
+[2m│ }[22m
+[2m│[22m @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
+[2m┆[22m        [33m[2m^--[22m @import rules must precede all rules aside from @charset and @layer statements[39m
+[2m┆[22m
+[2m│ :root {[22m
+[2m│   --radius: 0.75rem;[22m
+
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./src/app/(dashboard)/children/[id]/sessions/[sessionId]/page.tsx:69:43
+Parsing ecmascript source code failed
+[0m [90m 67 |[39m         [36mconst[39m scores[33m:[39m [33mRecord[39m[33m<[39m[33mstring[39m[33m,[39m number[33m>[39m [33m=[39m {}[33m;[39m
+ [90m 68 |[39m         [36mconst[39m notes[33m:[39m [33mRecord[39m[33m<[39m[33mstring[39m[33m,[39m string[33m>[39m [33m=[39m {}[33m;[39m
+[31m[1m>[22m[39m[90m 69 |[39m         session[33m.[39mtaskEvaluations[33m?[39m[33m.[39mforEach((eval[33m:[39m any) [33m=>[39m {
+ [90m    |[39m                                           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 70 |[39m           scores[eval[33m.[39mtaskId] [33m=[39m eval[33m.[39mscore[33m;[39m
+ [90m 71 |[39m           notes[eval[33m.[39mtaskId] [33m=[39m eval[33m.[39mnotes [33m||[39m [32m""[39m[33m;[39m
+ [90m 72 |[39m         })[33m;[39m[0m
+
+'eval' and 'arguments' cannot be used as a binding identifier in strict mode
+
+
+    at <unknown> (./src/app/(dashboard)/children/[id]/sessions/[sessionId]/page.tsx:69:43)
