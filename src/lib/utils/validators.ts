@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const childFormSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل"),
-  dateOfBirth: z.string().min(1, "تاريخ الميلاد مطلوب"),
+  dateOfBirth: z.coerce.date({
+    message: "تاريخ الميلاد مطلوب",
+  }),
   gender: z.enum(["male", "female"], {
     message: "الجنس مطلوب",
   }),

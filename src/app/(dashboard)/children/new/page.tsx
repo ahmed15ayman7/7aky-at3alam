@@ -123,10 +123,18 @@ export default function NewChildPage() {
   const onSubmit = async (data: ChildFormValues) => {
     setIsLoading(true);
     try {
+      // Convert date to ISO string for JSON serialization
+      const submitData = {
+        ...data,
+        dateOfBirth: data.dateOfBirth instanceof Date 
+          ? data.dateOfBirth.toISOString() 
+          : data.dateOfBirth,
+      };
+
       const response = await fetch("/api/children", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -182,13 +190,19 @@ export default function NewChildPage() {
                   <FormControl>
                     <Input
                       type="date"
-                      {...field}
                       value={
-                        field.value
-                          ? new Date(field.value).toISOString().split("T")[0]
+                        field.value && field.value instanceof Date
+                          ? field.value.toISOString().split("T")[0]
                           : ""
                       }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      onChange={(e) => {
+                        const date = new Date(e.target.value);
+                        if (!isNaN(date.getTime())) {
+                          field.onChange(date);
+                        }
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
