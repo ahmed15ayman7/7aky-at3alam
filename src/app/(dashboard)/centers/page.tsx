@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Building2, Users, Phone, Mail, MapPin } from "lucide-react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 interface Center {
@@ -202,9 +203,11 @@ export default function CentersPage() {
                   </div>
                 </div>
 
+                  <Link href={`/centers/${center.id}`}>
                 <Button variant="outline" className="w-full mt-3">
                   عرض التفاصيل
                 </Button>
+                </Link>
               </CardContent>
             </Card>
           </motion.div>

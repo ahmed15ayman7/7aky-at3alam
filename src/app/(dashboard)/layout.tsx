@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Sidebar } from "@/components/Sidebar";
+import { BottomBar } from "@/components/BottomBar";
 
 export const dynamic = 'force-dynamic';
 
@@ -9,14 +10,19 @@ export default function DashboardLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar - Desktop Only */}
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        {children}
+      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {children}
+        </div>
       </main>
+
+      {/* Bottom Bar - Mobile Only */}
+      <BottomBar />
     </div>
   );
 }

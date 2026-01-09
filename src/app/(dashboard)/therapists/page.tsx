@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, UserCog, Phone, Mail, Building2 } from "lucide-react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 interface Therapist {
@@ -227,10 +228,11 @@ export default function TherapistsPage() {
                     </div>
                   </div>
                 </div>
-
+                <Link href={`/therapists/${therapist.id}`}>
                 <Button variant="outline" className="w-full mt-3">
                   عرض التفاصيل
                 </Button>
+                </Link>
               </CardContent>
             </Card>
           </motion.div>

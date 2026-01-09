@@ -74,51 +74,51 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
             لوحة التحكم
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
             إدارة المراكز والأطفال والخطط العلاجية
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <Link href="/children/new">
-            <Button>إضافة طفل جديد</Button>
+        <div className="flex gap-2 sm:gap-3">
+          <Link href="/children/new" className="flex-1 sm:flex-none">
+            <Button className="w-full sm:w-auto text-sm">إضافة طفل جديد</Button>
           </Link>
-          <Link href="/centers/new">
-            <Button variant="outline">إضافة مركز</Button>
+          <Link href="/centers/new" className="flex-1 sm:flex-none">
+            <Button variant="outline" className="w-full sm:w-auto text-sm">إضافة مركز</Button>
           </Link>
         </div>
       </div>
 
       {/* Global Search */}
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <Input
           placeholder="ابحث عن طفل أو خطة علاجية..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full"
+          className="w-full text-sm sm:text-base"
         />
       </Card>
 
       {/* Stats Cards */}
       <motion.div
-        className="grid grid-cols-4 gap-6"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={itemVariants}>
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
+          <Card className="p-3 sm:p-4 lg:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              <div className="p-2 sm:p-2.5 lg:p-3 bg-primary/10 rounded-lg flex-shrink-0">
                 <svg
-                  className="w-8 h-8 text-primary"
+                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-primary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -131,9 +131,9 @@ export default function HomePage() {
                   />
                 </svg>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">إجمالي الأطفال</p>
-                <p className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">إجمالي الأطفال</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {stats.totalChildren}
                 </p>
               </div>
@@ -142,11 +142,11 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-secondary/10 rounded-lg">
+          <Card className="p-3 sm:p-4 lg:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              <div className="p-2 sm:p-2.5 lg:p-3 bg-secondary/10 rounded-lg flex-shrink-0">
                 <svg
-                  className="w-8 h-8 text-secondary"
+                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-secondary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -159,9 +159,9 @@ export default function HomePage() {
                   />
                 </svg>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">الخطط النشطة</p>
-                <p className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">الخطط النشطة</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {stats.activePlans}
                 </p>
               </div>
@@ -170,11 +170,11 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
+          <Card className="p-3 sm:p-4 lg:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              <div className="p-2 sm:p-2.5 lg:p-3 bg-green-100 rounded-lg flex-shrink-0">
                 <svg
-                  className="w-8 h-8 text-green-600"
+                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -187,9 +187,9 @@ export default function HomePage() {
                   />
                 </svg>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">الجلسات</p>
-                <p className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">الجلسات</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {stats.totalSessions}
                 </p>
               </div>
@@ -198,11 +198,11 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
+          <Card className="p-3 sm:p-4 lg:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+              <div className="p-2 sm:p-2.5 lg:p-3 bg-purple-100 rounded-lg flex-shrink-0">
                 <svg
-                  className="w-8 h-8 text-purple-600"
+                  className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -215,9 +215,9 @@ export default function HomePage() {
                   />
                 </svg>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">المراكز</p>
-                <p className="text-3xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">المراكز</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                   {stats.centersCount}
                 </p>
               </div>
@@ -227,15 +227,15 @@ export default function HomePage() {
       </motion.div>
 
       {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <Card className="p-4 sm:p-5 lg:p-6">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
           الإجراءات السريعة
         </h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <Link href="/plans/library">
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start text-sm sm:text-base">
               <svg
-                className="w-5 h-5 ml-2"
+                className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -247,13 +247,13 @@ export default function HomePage() {
                   d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
                 />
               </svg>
-              مكتبة الخطط العلاجية
+              <span className="truncate">مكتبة الخطط العلاجية</span>
             </Button>
           </Link>
           <Link href="/analytics">
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start text-sm sm:text-base">
               <svg
-                className="w-5 h-5 ml-2"
+                className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -265,13 +265,13 @@ export default function HomePage() {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              التحليلات والتقارير
+              <span className="truncate">التحليلات والتقارير</span>
             </Button>
           </Link>
           <Link href="/children">
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start text-sm sm:text-base">
               <svg
-                className="w-5 h-5 ml-2"
+                className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -283,7 +283,7 @@ export default function HomePage() {
                   d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                 />
               </svg>
-              قائمة الأطفال
+              <span className="truncate">قائمة الأطفال</span>
             </Button>
           </Link>
         </div>
@@ -291,36 +291,37 @@ export default function HomePage() {
 
       {/* Medical Centers */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
           المراكز الطبية
         </h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {centers.map((center) => (
-            <Link key={center.id} href={`/centers/${center.id}`}>
-              <motion.div
+            <motion.div 
+            key={center.id}
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">
+                <Card className="p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="flex justify-between items-start mb-3 sm:mb-4 gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                         {center.name}
                       </h3>
                       {center.address && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
                           {center.address}
                         </p>
                       )}
                     </div>
-                    <Badge>{center._count.children} طفل</Badge>
+                    <Badge className="flex-shrink-0 text-xs">{center._count.children} طفل</Badge>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full">
+            <Link  href={`/centers/${center.id}`}>
+                  <Button variant="outline" size="sm" className="w-full text-sm">
                     عرض التفاصيل
                   </Button>
+            </Link>
                 </Card>
               </motion.div>
-            </Link>
           ))}
         </div>
       </div>
