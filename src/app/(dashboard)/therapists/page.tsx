@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, UserCog, Phone, Mail, Building2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface Therapist {
   id: string;
@@ -34,6 +35,7 @@ interface Center {
 }
 
 export default function TherapistsPage() {
+  const router = useRouter();
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [centers, setCenters] = useState<Center[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,12 +111,11 @@ export default function TherapistsPage() {
           <h1 className="text-3xl font-bold">الأخصائيين</h1>
           <p className="text-muted-foreground mt-1">إدارة أخصائيي التخاطب</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={() => router.push("/therapists/new")}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="ml-2 h-4 w-4" />
-              إضافة أخصائي جديد
-            </Button>
+              </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -245,7 +246,7 @@ export default function TherapistsPage() {
             <UserCog className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">لا يوجد أخصائيين</h3>
             <p className="text-muted-foreground mb-4">ابدأ بإضافة أخصائي جديد</p>
-            <Button onClick={() => setIsDialogOpen(true)}>
+            <Button onClick={() => router.push("/therapists/new")}>
               <PlusCircle className="ml-2 h-4 w-4" />
               إضافة أخصائي
             </Button>
