@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-export const dynamic = 'force-dynamic';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -14,6 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,8 +22,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { childFormSchema, type ChildFormValues } from "@/lib/utils/validators";
+
+export const dynamic = 'force-dynamic';
+
+interface Center {
+  id: string;
+  name: string;
+}
+
+interface Therapist {
+  id: string;
+  name: string;
+  centerId: string;
+  specialization: string;
+}
 
 function CancelButton({ isLoading, onCancel }: { isLoading: boolean; onCancel: () => void }) {
   return (
@@ -42,6 +56,9 @@ function CancelButton({ isLoading, onCancel }: { isLoading: boolean; onCancel: (
 export default function NewChildPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [centers, setCenters] = useState<Center[]>([]);
+  const [therapists, setTherapists] = useState<Therapist[]>([]);
+  const [filteredTherapists, setFilteredTherapists] = useState<Therapist[]>([]);
 
   const form = useForm({
     resolver: zodResolver(childFormSchema),
@@ -53,10 +70,54 @@ export default function NewChildPage() {
       motherJob: "",
       phone: "",
       hasRelativeIssue: false,
-      centerId: "temp-center-id", // TODO: Replace with actual center ID
-      therapistId: "temp-therapist-id", // TODO: Replace with actual therapist ID
+      centerId: "",
+      therapistId: "",
     },
   });
+
+  // Fetch centers and therapists
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [centersRes, therapistsRes] = await Promise.all([
+          fetch("/api/centers"),
+          fetch("/api/therapists"),
+        ]);
+
+        if (centersRes.ok) {
+          const centersData = await centersRes.json();
+          setCenters(centersData);
+        }
+
+        if (therapistsRes.ok) {
+          const therapistsData = await therapistsRes.json();
+          setTherapists(therapistsData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Filter therapists based on selected center
+  const selectedCenterId = form.watch("centerId");
+  useEffect(() => {
+    if (selectedCenterId) {
+      const filtered = therapists.filter(t => t.centerId === selectedCenterId);
+      setFilteredTherapists(filtered);
+      
+      // Reset therapist selection if current therapist is not in filtered list
+      const currentTherapistId = form.getValues("therapistId");
+      if (currentTherapistId && !filtered.some(t => t.id === currentTherapistId)) {
+        form.setValue("therapistId", "");
+      }
+    } else {
+      setFilteredTherapists([]);
+      form.setValue("therapistId", "");
+    }
+  }, [selectedCenterId, therapists, form]);
 
   const onSubmit = async (data: ChildFormValues) => {
     setIsLoading(true);
@@ -97,7 +158,7 @@ export default function NewChildPage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>اسم الطفل</FormLabel>
+                  <FormLabel>اسم الطفل *</FormLabel>
                   <FormControl>
                     <Input placeholder="أدخل اسم الطفل" {...field} />
                   </FormControl>
@@ -111,7 +172,7 @@ export default function NewChildPage() {
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>تاريخ الميلاد</FormLabel>
+                  <FormLabel>تاريخ الميلاد *</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -134,7 +195,7 @@ export default function NewChildPage() {
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>الجنس</FormLabel>
+                  <FormLabel>الجنس *</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -154,6 +215,83 @@ export default function NewChildPage() {
               )}
             />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="centerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المركز *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المركز" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {centers.length === 0 ? (
+                          <SelectItem value="no-centers" disabled>
+                            لا توجد مراكز متاحة
+                          </SelectItem>
+                        ) : (
+                          centers.map((center) => (
+                            <SelectItem key={center.id} value={center.id}>
+                              {center.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      اختر المركز الذي ينتمي إليه الطفل
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="therapistId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الأخصائي *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!selectedCenterId || filteredTherapists.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            !selectedCenterId 
+                              ? "اختر المركز أولاً" 
+                              : filteredTherapists.length === 0
+                              ? "لا يوجد أخصائيون في هذا المركز"
+                              : "اختر الأخصائي"
+                          } />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filteredTherapists.map((therapist) => (
+                          <SelectItem key={therapist.id} value={therapist.id}>
+                            {therapist.name} - {therapist.specialization}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      اختر الأخصائي المسؤول عن الطفل
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="address"
@@ -168,7 +306,7 @@ export default function NewChildPage() {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="fatherJob"
@@ -212,6 +350,29 @@ export default function NewChildPage() {
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="hasRelativeIssue"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none pr-3">
+                    <FormLabel>
+                      يوجد مشكلة مماثلة في العائلة
+                    </FormLabel>
+                    <FormDescription>
+                      حدد هذا الخيار إذا كان هناك حالات مماثلة في العائلة
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <div className="flex gap-4 justify-end">
               <CancelButton isLoading={isLoading} onCancel={() => router.back()} />
               <Button type="submit" disabled={isLoading}>
@@ -224,4 +385,3 @@ export default function NewChildPage() {
     </div>
   );
 }
-

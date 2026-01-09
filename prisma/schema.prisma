@@ -7,265 +7,271 @@ datasource db {
 }
 
 model Center {
-  id          String      @id @default(cuid())
-  name        String
-  address     String?
-  phone       String?
-  email       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  children    Child[]
-  therapists  Therapist[]
+  id            String   @id @default(cuid())
+  name          String
+  address       String?
+  phone         String?
+  email         String?
+  licenseNumber String?
+  description   String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  children   Child[]
+  therapists Therapist[]
 }
 
 model Therapist {
-  id          String    @id @default(cuid())
-  name        String
-  email       String    @unique
-  phone       String?
-  centerId    String
-  center      Center    @relation(fields: [centerId], references: [id])
-  createdAt   DateTime  @default(now())
-  
-  children    Child[]
-  sessions    Session[]
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  phone             String?
+  specialization    String
+  licenseNumber     String?
+  yearsOfExperience Int      @default(0)
+  centerId          String
+  center            Center   @relation(fields: [centerId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  children Child[]
+  sessions Session[]
 }
 
 model Child {
-  id                String        @id @default(cuid())
-  name              String
-  dateOfBirth       DateTime
-  age               Int
-  gender            String        // "male" | "female"
-  address           String?
-  fatherJob         String?
-  motherJob         String?
-  phone             String?
-  hasRelativeIssue  Boolean       @default(false)
-  
-  centerId          String
-  center            Center        @relation(fields: [centerId], references: [id])
-  
-  therapistId       String
-  therapist         Therapist     @relation(fields: [therapistId], references: [id])
-  
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  
-  assessments       Assessment[]
-  diagnoses         Diagnosis[]
-  therapyPlans      TherapyPlan[]
-  sessions          Session[]
+  id               String   @id @default(cuid())
+  name             String
+  dateOfBirth      DateTime
+  age              Int
+  gender           String // "male" | "female"
+  address          String?
+  fatherJob        String?
+  motherJob        String?
+  phone            String?
+  hasRelativeIssue Boolean  @default(false)
+
+  centerId String
+  center   Center @relation(fields: [centerId], references: [id])
+
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assessments  Assessment[]
+  diagnoses    Diagnosis[]
+  therapyPlans TherapyPlan[]
+  sessions     Session[]
 }
 
 model Assessment {
-  id                           String     @id @default(cuid())
-  childId                      String
-  child                        Child      @relation(fields: [childId], references: [id], onDelete: Cascade)
-  
-  assessmentDate               DateTime   @default(now())
-  
+  id      String @id @default(cuid())
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  assessmentDate DateTime @default(now())
+
   // بيانات الأم والحمل
-  motherAge                    Int?
-  siblingsCount                Int?
-  birthType                    String?    // "طبيعي" | "قيصري"
-  hadIncidentsDuringPregnancy  Boolean    @default(false)
-  hasSimilarCaseInFamily       Boolean    @default(false)
-  hadOxygenDeficiency          Boolean    @default(false)
-  
+  motherAge                   Int?
+  siblingsCount               Int?
+  birthType                   String? // "طبيعي" | "قيصري"
+  hadIncidentsDuringPregnancy Boolean @default(false)
+  hasSimilarCaseInFamily      Boolean @default(false)
+  hadOxygenDeficiency         Boolean @default(false)
+
   // تاريخ النمو
-  walkingStartAge              String?    // "6 شهور"
-  sittingStartAge              String?
-  hasHearingProblems           Boolean    @default(false)
-  visitedENTDoctor             Boolean    @default(false)
-  
+  walkingStartAge    String? // "6 شهور"
+  sittingStartAge    String?
+  hasHearingProblems Boolean @default(false)
+  visitedENTDoctor   Boolean @default(false)
+
   // الفحص العضوي
-  jawDeformities               Boolean    @default(false)
-  palateIssue                  Boolean    @default(false)
-  tongueTie                    Boolean    @default(false)
-  larynxInjuries               Boolean    @default(false)
-  
+  jawDeformities Boolean @default(false)
+  palateIssue    Boolean @default(false)
+  tongueTie      Boolean @default(false)
+  larynxInjuries Boolean @default(false)
+
   // أعراض مصاحبة
-  bedwetting                   Boolean    @default(false)
-  anxiety                      Boolean    @default(false)
-  hyperactivity                Boolean    @default(false)
-  fear                         Boolean    @default(false)
-  shyness                      Boolean    @default(false)
-  distracted                   Boolean    @default(false)
-  urinaryIncontinence          Boolean    @default(false)
-  
+  bedwetting          Boolean @default(false)
+  anxiety             Boolean @default(false)
+  hyperactivity       Boolean @default(false)
+  fear                Boolean @default(false)
+  shyness             Boolean @default(false)
+  distracted          Boolean @default(false)
+  urinaryIncontinence Boolean @default(false)
+
   // التاريخ اللغوي
-  firstWord                    String?
-  knownWords                   String?    // JSON array as string
-  spokenWords                  String?    // JSON array as string
-  sentenceStart                String?
-  unclearSentences             Boolean    @default(false)
-  
+  firstWord        String?
+  knownWords       String? // JSON array as string
+  spokenWords      String? // JSON array as string
+  sentenceStart    String?
+  unclearSentences Boolean @default(false)
+
   // اللغة الاستقبالية (JSON)
-  receptiveLanguage            Json?      // {bodyParts: [], animals: [], vegetables: [], ...}
-  
+  receptiveLanguage Json? // {bodyParts: [], animals: [], vegetables: [], ...}
+
   // نتائج الاختبارات
-  iqScore                      Float?
-  mentalAge                    String?
-  languageAge                  String?
-  
-  weaknessAreas                Json?      // {linguistic: [], academic: [], mental: []}
-  
-  chiefComplaint               String     @db.Text
-  
-  createdAt                    DateTime   @default(now())
-  updatedAt                    DateTime   @updatedAt
-  
-  diagnosis                    Diagnosis?
+  iqScore     Float?
+  mentalAge   String?
+  languageAge String?
+
+  weaknessAreas Json? // {linguistic: [], academic: [], mental: []}
+
+  chiefComplaint String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  diagnosis Diagnosis?
 }
 
 model Diagnosis {
-  id                    String        @id @default(cuid())
-  childId               String
-  child                 Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
-  
-  assessmentId          String        @unique
-  assessment            Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  
-  aiSuggestedDiagnosis  String        @db.Text
-  aiConfidence          Float?
-  aiReasoning           String?       @db.Text
-  
-  finalDiagnosis        String        @db.Text
-  severityLevel         String        // "خفيف" | "متوسط" | "شديد"
-  
-  isAiApproved          Boolean       @default(false)
-  doctorNotes           String?       @db.Text
-  
-  diagnosisDate         DateTime      @default(now())
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  
-  therapyPlans          TherapyPlan[]
+  id      String @id @default(cuid())
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  assessmentId String     @unique
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  aiSuggestedDiagnosis String  @db.Text
+  aiConfidence         Float?
+  aiReasoning          String? @db.Text
+
+  finalDiagnosis String @db.Text
+  severityLevel  String // "خفيف" | "متوسط" | "شديد"
+
+  isAiApproved Boolean @default(false)
+  doctorNotes  String? @db.Text
+
+  diagnosisDate DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  therapyPlans TherapyPlan[]
 }
 
 model TherapyPlan {
-  id              String        @id @default(cuid())
-  childId         String
-  child           Child         @relation(fields: [childId], references: [id], onDelete: Cascade)
-  
-  diagnosisId     String
-  diagnosis       Diagnosis     @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
-  
-  planNumber      Int           // 1, 2, 3, 4
-  title           String
-  
-  generalGoal     String        @db.Text
-  duration        String        // "3 أشهر"
-  
-  planData        Json          // الخطة الكاملة بصيغة JSON
-  planHtml        String        @db.Text  // HTML للعرض والتصدير
-  
-  isActive        Boolean       @default(false)
-  isAiGenerated   Boolean       @default(true)
-  
-  exportedFileUrl String?       // URL للملف المصدر
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  stages          Stage[]
-  sessions        Session[]
-  exports         PlanExport[]
+  id      String @id @default(cuid())
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  diagnosisId String
+  diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+
+  planNumber Int // 1, 2, 3, 4
+  title      String
+
+  generalGoal String @db.Text
+  duration    String // "3 أشهر"
+
+  planData Json // الخطة الكاملة بصيغة JSON
+  planHtml String @db.Text // HTML للعرض والتصدير
+
+  isActive      Boolean @default(false)
+  isAiGenerated Boolean @default(true)
+
+  exportedFileUrl String? // URL للملف المصدر
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stages   Stage[]
+  sessions Session[]
+  exports  PlanExport[]
 }
 
 model Stage {
-  id              String        @id @default(cuid())
-  therapyPlanId   String
-  therapyPlan     TherapyPlan   @relation(fields: [therapyPlanId], references: [id], onDelete: Cascade)
-  
-  stageNumber     Int           // 1, 2, 3
-  title           String
-  period          String        // "الأسبوع 1-2"
-  description     String?       @db.Text
-  
-  order           Int
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  tasks           Task[]
+  id            String      @id @default(cuid())
+  therapyPlanId String
+  therapyPlan   TherapyPlan @relation(fields: [therapyPlanId], references: [id], onDelete: Cascade)
+
+  stageNumber Int // 1, 2, 3
+  title       String
+  period      String // "الأسبوع 1-2"
+  description String? @db.Text
+
+  order Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
 }
 
 model Task {
-  id                  String                     @id @default(cuid())
-  stageId             String
-  stage               Stage                      @relation(fields: [stageId], references: [id], onDelete: Cascade)
-  
-  taskCode            String                     // "A1", "B5", "C12"
+  id      String @id @default(cuid())
+  stageId String
+  stage   Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  taskCode            String // "A1", "B5", "C12"
   taskName            String
-  goal                String                     @db.Text
-  question            String                     @db.Text
-  examples            String                     @db.Text
-  performanceCriteria String                     @db.Text
-  score               Int                        @default(0)  // 0, 1, 2
-  notes               String?                    @db.Text
-  
-  order               Int
-  
-  createdAt           DateTime                   @default(now())
-  updatedAt           DateTime                   @updatedAt
-  
-  sessionEvaluations  SessionTaskEvaluation[]
+  goal                String  @db.Text
+  question            String  @db.Text
+  examples            String  @db.Text
+  performanceCriteria String  @db.Text
+  score               Int     @default(0) // 0, 1, 2
+  notes               String? @db.Text
+
+  order Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessionEvaluations SessionTaskEvaluation[]
 }
 
 model Session {
-  id                String                     @id @default(cuid())
-  childId           String
-  child             Child                      @relation(fields: [childId], references: [id], onDelete: Cascade)
-  
-  therapyPlanId     String?
-  therapyPlan       TherapyPlan?               @relation(fields: [therapyPlanId], references: [id])
-  
-  therapistId       String
-  therapist         Therapist                  @relation(fields: [therapistId], references: [id])
-  
-  sessionNumber     Int
-  sessionDate       DateTime
-  duration          Int                        // بالدقائق
-  
-  activities        Json?                      // {freePlay: 10, coreSkill: 15, interactive: 10, reinforcement: 10}
-  
-  generalNotes      String?                    @db.Text
-  overallProgress   Int?                       // 0-100
-  
-  createdAt         DateTime                   @default(now())
-  updatedAt         DateTime                   @updatedAt
-  
-  taskEvaluations   SessionTaskEvaluation[]
+  id      String @id @default(cuid())
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  therapyPlanId String?
+  therapyPlan   TherapyPlan? @relation(fields: [therapyPlanId], references: [id])
+
+  therapistId String
+  therapist   Therapist @relation(fields: [therapistId], references: [id])
+
+  sessionNumber Int
+  sessionDate   DateTime
+  duration      Int // بالدقائق
+
+  activities Json? // {freePlay: 10, coreSkill: 15, interactive: 10, reinforcement: 10}
+
+  generalNotes    String? @db.Text
+  overallProgress Int? // 0-100
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskEvaluations SessionTaskEvaluation[]
 }
 
 model SessionTaskEvaluation {
-  id          String    @id @default(cuid())
-  sessionId   String
-  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
-  taskId      String
-  task        Task      @relation(fields: [taskId], references: [id])
-  
-  score       Int       // 0, 1, 2
-  notes       String?   @db.Text
-  
-  createdAt   DateTime  @default(now())
-  
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+
+  score Int // 0, 1, 2
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+
   @@unique([sessionId, taskId])
 }
 
 model PlanExport {
-  id              String        @id @default(cuid())
-  therapyPlanId   String
-  therapyPlan     TherapyPlan   @relation(fields: [therapyPlanId], references: [id], onDelete: Cascade)
-  
-  exportType      String        // "pdf" | "docx"
-  fileUrl         String        // Supabase Storage URL
-  fileName        String
-  fileSize        Int
-  
-  createdAt       DateTime      @default(now())
+  id            String      @id @default(cuid())
+  therapyPlanId String
+  therapyPlan   TherapyPlan @relation(fields: [therapyPlanId], references: [id], onDelete: Cascade)
+
+  exportType String // "pdf" | "docx"
+  fileUrl    String // Supabase Storage URL
+  fileName   String
+  fileSize   Int
+
+  createdAt DateTime @default(now())
 }

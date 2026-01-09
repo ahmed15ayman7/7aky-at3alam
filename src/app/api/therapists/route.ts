@@ -36,13 +36,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, centerId } = body;
+    const { name, email, phone, specialization, licenseNumber, yearsOfExperience, centerId } = body;
 
     const therapist = await prisma.therapist.create({
       data: {
         name,
         email,
         phone,
+        specialization,
+        licenseNumber,
+        yearsOfExperience: yearsOfExperience || 0,
         centerId,
       },
       include: {
