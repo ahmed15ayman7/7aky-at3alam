@@ -53,12 +53,32 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex h-screen w-64 flex-col border-l bg-background sticky top-0">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-            ح
-          </div>
-          <span>حقي أتعلم</span>
+      <div className="flex h-20 items-center justify-center border-b px-6 bg-gradient-to-br from-primary/5 to-yellow-50/50">
+        <Link href="/" className="flex items-center gap-3 group">
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="relative h-12 w-12 flex-shrink-0"
+          >
+            <img 
+              src="/logo.png" 
+              alt="حقي أتعلم" 
+              className="h-full w-full object-contain rounded-lg shadow-md group-hover:shadow-lg transition-shadow"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col"
+          >
+            <span className="font-bold text-lg leading-tight bg-gradient-to-r from-primary to-yellow-600 bg-clip-text text-transparent">
+              حقي أتعلم
+            </span>
+            <span className="text-xs text-muted-foreground">نظام إدارة العلاج</span>
+          </motion.div>
         </Link>
       </div>
 
