@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Form,
   FormControl,
@@ -17,7 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Building2, MapPin, Phone, Mail, Loader2 } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Loader2, Users, ChevronLeft, Calendar, UserCog } from "lucide-react";
 
 const centerSchema = z.object({
   name: z.string().min(2, "يجب أن يكون اسم المركز على الأقل حرفين"),
@@ -30,6 +32,24 @@ const centerSchema = z.object({
 
 type CenterFormValues = z.infer<typeof centerSchema>;
 
+interface Child {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  therapist: {
+    name: string;
+  };
+  therapyPlans: Array<{
+    id: string;
+    isActive: boolean;
+  }>;
+}
+
+interface CenterData extends CenterFormValues {
+  children?: Child[];
+}
+
 export const dynamic = 'force-dynamic';
 
 export default function CenterDetailPage() {
@@ -38,6 +58,7 @@ export default function CenterDetailPage() {
   const centerId = params.id as string;
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [children, setChildren] = useState<Child[]>([]);
 
   const form = useForm<CenterFormValues>({
     resolver: zodResolver(centerSchema),
@@ -58,8 +79,13 @@ export default function CenterDetailPage() {
         if (!response.ok) {
           throw new Error("فشل في تحميل بيانات المركز");
         }
-        const data = await response.json();
+        const data: CenterData = await response.json();
         form.reset(data);
+        
+        // Set children if available
+        if (data.children) {
+          setChildren(data.children);
+        }
       } catch (error) {
         console.error("Error fetching center:", error);
         alert("حدث خطأ أثناء تحميل بيانات المركز");
@@ -128,17 +154,112 @@ export default function CenterDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Building2 className="w-8 h-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Building2 className="w-6 h-6 sm:w-8 sm:h-8" />
           تعديل بيانات المركز
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-sm sm:text-base text-gray-600 mt-2">
           تحديث معلومات المركز الطبي
         </p>
       </div>
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">إجمالي الأطفال</p>
+                <p className="text-2xl font-bold text-gray-900">{children.length}</p>
+              </div>
+              <Users className="w-8 h-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">الخطط النشطة</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {children.filter(c => c.therapyPlans.some(p => p.isActive)).length}
+                </p>
+              </div>
+              <Calendar className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="col-span-2 lg:col-span-1">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">الأخصائيون</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {new Set(children.map(c => c.therapist.name)).size}
+                </p>
+              </div>
+              <UserCog className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Children List */}
+      {children.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              الأطفال المسجلون ({children.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {children.map((child) => (
+                <Link key={child.id} href={`/children/${child.id}`}>
+                  <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold flex-shrink-0">
+                        {child.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-medium text-gray-900 truncate">{child.name}</h4>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-xs text-gray-500">
+                            {child.age} سنوات
+                          </span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-500">
+                            {child.gender === "male" ? "ذكر" : "أنثى"}
+                          </span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-500 truncate">
+                            {child.therapist.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {child.therapyPlans.some(p => p.isActive) && (
+                          <Badge variant="default" className="text-xs">
+                            خطة نشطة
+                          </Badge>
+                        )}
+                        <ChevronLeft className="w-4 h-4 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Form */}
       <Card>
         <CardHeader>
           <CardTitle>معلومات المركز</CardTitle>
