@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -134,10 +135,15 @@ export default function NewChildPage() {
       }
 
       const child = await response.json();
+      toast.success("تم إضافة الطفل بنجاح!", {
+        description: `تم إضافة ${data.name} إلى النظام`,
+      });
       router.push(`/children/${child.id}`);
     } catch (error: any) {
       console.error("Error creating child:", error);
-      alert(error.message || "حدث خطأ أثناء إضافة الطفل");
+      toast.error("خطأ في إضافة الطفل", {
+        description: error.message || "حدث خطأ أثناء إضافة الطفل",
+      });
     } finally {
       setIsLoading(false);
     }

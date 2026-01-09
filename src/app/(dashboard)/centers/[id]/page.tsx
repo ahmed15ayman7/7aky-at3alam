@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,9 +87,11 @@ export default function CenterDetailPage() {
         if (data.children) {
           setChildren(data.children);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching center:", error);
-        alert("حدث خطأ أثناء تحميل بيانات المركز");
+        toast.error("خطأ في تحميل البيانات", {
+          description: error.message || "حدث خطأ أثناء تحميل بيانات المركز",
+        });
       } finally {
         setIsFetching(false);
       }
@@ -107,14 +110,20 @@ export default function CenterDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في تحديث المركز");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في تحديث المركز");
       }
 
+      toast.success("تم تحديث المركز بنجاح!", {
+        description: `تم تحديث بيانات ${data.name}`,
+      });
       router.push("/centers");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating center:", error);
-      alert("حدث خطأ أثناء تحديث المركز");
+      toast.error("خطأ في تحديث المركز", {
+        description: error.message || "حدث خطأ أثناء تحديث المركز",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,14 +141,20 @@ export default function CenterDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في حذف المركز");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في حذف المركز");
       }
 
+      toast.success("تم حذف المركز بنجاح!", {
+        description: "تم حذف المركز من النظام",
+      });
       router.push("/centers");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting center:", error);
-      alert("حدث خطأ أثناء حذف المركز");
+      toast.error("خطأ في حذف المركز", {
+        description: error.message || "حدث خطأ أثناء حذف المركز",
+      });
     } finally {
       setIsLoading(false);
     }

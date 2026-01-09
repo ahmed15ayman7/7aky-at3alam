@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,9 +83,11 @@ export default function TherapistDetailPage() {
         }
         const therapistData = await therapistResponse.json();
         form.reset(therapistData);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching data:", error);
-        alert("حدث خطأ أثناء تحميل البيانات");
+        toast.error("خطأ في تحميل البيانات", {
+          description: error.message || "حدث خطأ أثناء تحميل البيانات",
+        });
       } finally {
         setIsFetching(false);
       }
@@ -103,21 +106,27 @@ export default function TherapistDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في تحديث المعالج");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في تحديث الأخصائي");
       }
 
+      toast.success("تم تحديث الأخصائي بنجاح!", {
+        description: `تم تحديث بيانات ${data.name}`,
+      });
       router.push("/therapists");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating therapist:", error);
-      alert("حدث خطأ أثناء تحديث المعالج");
+      toast.error("خطأ في تحديث الأخصائي", {
+        description: error.message || "حدث خطأ أثناء تحديث الأخصائي",
+      });
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleDelete() {
-    if (!confirm("هل أنت متأكد من حذف هذا المعالج؟ لا يمكن التراجع عن هذا الإجراء.")) {
+    if (!confirm("هل أنت متأكد من حذف هذا الأخصائي؟ لا يمكن التراجع عن هذا الإجراء.")) {
       return;
     }
 
@@ -128,14 +137,20 @@ export default function TherapistDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في حذف المعالج");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في حذف الأخصائي");
       }
 
+      toast.success("تم حذف الأخصائي بنجاح!", {
+        description: "تم حذف الأخصائي من النظام",
+      });
       router.push("/therapists");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting therapist:", error);
-      alert("حدث خطأ أثناء حذف المعالج");
+      toast.error("خطأ في حذف الأخصائي", {
+        description: error.message || "حدث خطأ أثناء حذف الأخصائي",
+      });
     } finally {
       setIsLoading(false);
     }

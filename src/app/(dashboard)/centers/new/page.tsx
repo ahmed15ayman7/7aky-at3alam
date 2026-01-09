@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,14 +59,20 @@ export default function NewCenterPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في إضافة المركز");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في إضافة المركز");
       }
 
+      toast.success("تم إضافة المركز بنجاح!", {
+        description: `تم إضافة ${data.name} إلى النظام`,
+      });
       router.push("/centers");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating center:", error);
-      alert("حدث خطأ أثناء إضافة المركز");
+      toast.error("خطأ في إضافة المركز", {
+        description: error.message || "حدث خطأ أثناء إضافة المركز",
+      });
     } finally {
       setIsLoading(false);
     }

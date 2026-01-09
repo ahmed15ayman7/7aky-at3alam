@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,14 +88,20 @@ export default function NewTherapistPage() {
       });
 
       if (!response.ok) {
-        throw new Error("فشل في إضافة المعالج");
+        const error = await response.json();
+        throw new Error(error.error || "فشل في إضافة الأخصائي");
       }
 
+      toast.success("تم إضافة الأخصائي بنجاح!", {
+        description: `تم إضافة ${data.name} إلى النظام`,
+      });
       router.push("/therapists");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating therapist:", error);
-      alert("حدث خطأ أثناء إضافة المعالج");
+      toast.error("خطأ في إضافة الأخصائي", {
+        description: error.message || "حدث خطأ أثناء إضافة الأخصائي",
+      });
     } finally {
       setIsLoading(false);
     }
