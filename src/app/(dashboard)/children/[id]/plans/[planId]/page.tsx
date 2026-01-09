@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,10 +30,11 @@ interface TherapyPlan {
 }
 
 export default function PlanDetailPage({
-  params,
+  params: paramsPromise,
 }: {
-  params: { id: string; planId: string };
+  params: Promise<{ id: string; planId: string }>;
 }) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const [plan, setPlan] = useState<TherapyPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);

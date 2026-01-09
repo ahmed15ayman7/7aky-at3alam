@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +28,7 @@ import {
   diagnosisFormSchema,
   type DiagnosisFormValues,
 } from "@/lib/utils/validators";
-
+import { toast } from "sonner";
 interface Diagnosis {
   id: string;
   aiSuggestedDiagnosis: string;
@@ -43,8 +43,9 @@ interface Diagnosis {
 export default function DiagnosisPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -62,7 +63,7 @@ export default function DiagnosisPage({
   const fetchChildData = async () => {
     try {
       // Get child's latest assessment
-      const response = await fetch(`/api/assessment?childId=${params.id}`);
+      const response = await fetch(`/api/assessment?childId=${id}`);
       if (response.ok) {
         const assessments = await response.json();
         if (assessments.length > 0) {
@@ -86,7 +87,7 @@ export default function DiagnosisPage({
 
   const generateDiagnosis = async () => {
     if (!assessmentId) {
-      alert("لم يتم العثور على تقييم للطفل");
+      toast.error("لم يتم العثور على تقييم للطفل");
       return;
     }
 
@@ -135,7 +136,7 @@ export default function DiagnosisPage({
       }
 
       // Navigate to therapy plans
-      router.push(`/children/${params.id}/plans`);
+      router.push(`/children/${id}/plans`);
     } catch (error: any) {
       console.error("Error saving diagnosis:", error);
       alert(error.message || "حدث خطأ أثناء حفظ التشخيص");

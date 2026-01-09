@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,10 +17,11 @@ interface TherapyPlan {
 }
 
 export default function TherapyPlansPage({
-  params,
+  params: paramsPromise,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const [plans, setPlans] = useState<TherapyPlan[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);

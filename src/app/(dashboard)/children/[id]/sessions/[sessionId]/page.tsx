@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -37,10 +37,11 @@ interface FormData {
 }
 
 export default function SessionDetailPage({
-  params,
+  params: paramsPromise,
 }: {
-  params: { id: string; sessionId: string };
+  params: Promise<{ id: string; sessionId: string }>;
 }) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskScores, setTaskScores] = useState<Record<string, number>>({});

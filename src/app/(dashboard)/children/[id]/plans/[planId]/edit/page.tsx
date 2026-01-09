@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlanEditor } from "@/components/plans/PlanEditor";
 
@@ -25,10 +25,11 @@ interface Stage {
 }
 
 export default function EditPlanPage({
-  params,
+  params: paramsPromise,
 }: {
-  params: { id: string; planId: string };
+  params: Promise<{ id: string; planId: string }>;
 }) {
+  const params = use(paramsPromise);
   const router = useRouter();
   const [stages, setStages] = useState<Stage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
