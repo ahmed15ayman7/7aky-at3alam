@@ -58,7 +58,7 @@ export function Sidebar() {
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
             ح
           </div>
-          <span>حقي وتعلم</span>
+          <span>حقي أتعلم</span>
         </Link>
       </div>
 

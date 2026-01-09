@@ -1,0 +1,46 @@
+{
+  "name": "حقي أتعلم - نظام إدارة العلاج الطبي",
+  "short_name": "حقي أتعلم",
+  "description": "منصة متكاملة لإدارة علاج الأطفال في مراكز التخاطب",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#EAB308",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["medical", "education", "healthcare", "productivity"],
+  "shortcuts": [
+    {
+      "name": "الأطفال",
+      "url": "/children",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "المراكز",
+      "url": "/centers",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "الخطط العلاجية",
+      "url": "/plans/library",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    }
+  ]
+}
+

@@ -11,7 +11,7 @@ async function main() {
     update: {},
     create: {
       id: "demo-center-id",
-      name: "مركز حقي وتعلم للتخاطب",
+      name: "مركز حقي أتعلم للتخاطب",
       address: "القاهرة، مصر",
       phone: "01234567890",
       email: "info@7aky-at3alam.com",
