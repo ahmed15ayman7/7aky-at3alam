@@ -67,8 +67,8 @@ export default function CenterDetailPage() {
       address: "",
       phone: "",
       email: "",
-      licenseNumber: "",
-      description: "",
+      licenseNumber: " ",
+      description: " ",
     },
   });
 
@@ -361,7 +361,7 @@ export default function CenterDetailPage() {
                   <FormItem>
                     <FormLabel>رقم الترخيص</FormLabel>
                     <FormControl>
-                      <Input placeholder="رقم الترخيص الطبي" {...field} />
+                      <Input placeholder="رقم الترخيص الطبي" {...field}  />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
