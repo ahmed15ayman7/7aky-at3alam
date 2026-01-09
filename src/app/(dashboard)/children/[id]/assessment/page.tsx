@@ -1,10 +1,12 @@
 import { AssessmentForm } from "@/components/forms/AssessmentForm";
 
-export default function ChildAssessmentPage({
+export default async function ChildAssessmentPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+  
   return (
     <div className="space-y-6">
       <div>
@@ -12,7 +14,7 @@ export default function ChildAssessmentPage({
         <p className="text-gray-600 mt-2">قم بتعبئة استمارة التقييم للطفل</p>
       </div>
 
-      <AssessmentForm childId={params.id} />
+      <AssessmentForm childId={id} />
     </div>
   );
 }

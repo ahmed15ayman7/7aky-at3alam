@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -8,11 +8,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
-interface ReceptiveLanguageStepProps {
-  form: UseFormReturn<AssessmentFormValues>;
-}
 
-export function ReceptiveLanguageStep({ form }: ReceptiveLanguageStepProps) {
+export function ReceptiveLanguageStep() {
+  const form = useFormContext<AssessmentFormValues>();
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">اللغة الاستقبالية</h3>

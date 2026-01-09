@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -10,11 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
-interface TestResultsStepProps {
-  form: UseFormReturn<AssessmentFormValues>;
-}
 
-export function TestResultsStep({ form }: TestResultsStepProps) {
+export function TestResultsStep() {
+  const form = useFormContext<AssessmentFormValues>();
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">نتائج الاختبارات</h3>

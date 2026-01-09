@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -16,11 +16,8 @@ import {
 } from "@/components/ui/select";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
-interface MotherInfoStepProps {
-  form: UseFormReturn<AssessmentFormValues>;
-}
-
-export function MotherInfoStep({ form }: MotherInfoStepProps) {
+export function MotherInfoStep() {
+  const form = useFormContext<AssessmentFormValues>();
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">بيانات الأم والحمل</h3>

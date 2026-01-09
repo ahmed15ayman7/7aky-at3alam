@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -90,10 +91,15 @@ export function AssessmentForm({ childId }: AssessmentFormProps) {
       }
 
       const assessment = await response.json();
+      toast.success("تم حفظ التقييم بنجاح!", {
+        description: "سيتم توجيهك لصفحة التشخيص",
+      });
       router.push(`/children/${childId}/diagnosis`);
     } catch (error: any) {
       console.error("Error saving assessment:", error);
-      alert(error.message || "حدث خطأ أثناء حفظ التقييم");
+      toast.error("خطأ في حفظ التقييم", {
+        description: error.message || "حدث خطأ أثناء حفظ التقييم",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -114,49 +120,51 @@ export function AssessmentForm({ childId }: AssessmentFormProps) {
   const progress = (currentStep / steps.length) * 100;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">استمارة التقييم</h2>
-        <p className="text-gray-600 mt-2">
-          {steps[currentStep - 1].title} - الخطوة {currentStep} من {steps.length}
-        </p>
+    <FormProvider {...form}>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">استمارة التقييم</h2>
+          <p className="text-gray-600 mt-2">
+            {steps[currentStep - 1].title} - الخطوة {currentStep} من {steps.length}
+          </p>
+        </div>
+
+        <Progress value={progress} className="w-full" />
+
+        <Card className="p-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            {currentStep === 1 && <MotherInfoStep />}
+            {currentStep === 2 && <DevelopmentHistoryStep />}
+            {currentStep === 3 && <PhysicalExamStep />}
+            {currentStep === 4 && <SymptomsStep />}
+            {currentStep === 5 && <LanguageHistoryStep />}
+            {currentStep === 6 && <ReceptiveLanguageStep />}
+            {currentStep === 7 && <TestResultsStep />}
+
+            <div className="flex justify-between mt-8">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+              >
+                السابق
+              </Button>
+
+              {currentStep < steps.length ? (
+                <Button type="button" onClick={nextStep}>
+                  التالي
+                </Button>
+              ) : (
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "جاري الحفظ..." : "حفظ التقييم"}
+                </Button>
+              )}
+            </div>
+          </form>
+        </Card>
       </div>
-
-      <Progress value={progress} className="w-full" />
-
-      <Card className="p-6">
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          {currentStep === 1 && <MotherInfoStep form={form as any} />}
-          {currentStep === 2 && <DevelopmentHistoryStep form={form as any} />}
-          {currentStep === 3 && <PhysicalExamStep form={form as any} />}
-          {currentStep === 4 && <SymptomsStep form={form as any} />}
-          {currentStep === 5 && <LanguageHistoryStep form={form as any} />}
-          {currentStep === 6 && <ReceptiveLanguageStep form={form as any} />}
-          {currentStep === 7 && <TestResultsStep form={form as any} />}
-
-          <div className="flex justify-between mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 1}
-            >
-              السابق
-            </Button>
-
-            {currentStep < steps.length ? (
-              <Button type="button" onClick={nextStep}>
-                التالي
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "جاري الحفظ..." : "حفظ التقييم"}
-              </Button>
-            )}
-          </div>
-        </form>
-      </Card>
-    </div>
+    </FormProvider>
   );
 }
 

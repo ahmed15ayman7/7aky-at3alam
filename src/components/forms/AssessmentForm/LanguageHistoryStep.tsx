@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -9,11 +9,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
-interface LanguageHistoryStepProps {
-  form: UseFormReturn<AssessmentFormValues>;
-}
 
-export function LanguageHistoryStep({ form }: LanguageHistoryStepProps) {
+export function LanguageHistoryStep() {
+  const form = useFormContext<AssessmentFormValues>();
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">التاريخ اللغوي</h3>

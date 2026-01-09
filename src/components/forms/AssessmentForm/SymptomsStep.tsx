@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -7,11 +7,9 @@ import {
 } from "@/components/ui/form";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
-interface SymptomsStepProps {
-  form: UseFormReturn<AssessmentFormValues>;
-}
 
-export function SymptomsStep({ form }: SymptomsStepProps) {
+export function SymptomsStep() {
+  const form = useFormContext<AssessmentFormValues>();
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">أعراض مصاحبة وسلوكيات مرضية</h3>
