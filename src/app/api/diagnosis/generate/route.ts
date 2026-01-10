@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Call OpenAI
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
