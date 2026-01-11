@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 
 interface TherapyPlan {
   id: string;
@@ -14,6 +17,19 @@ interface TherapyPlan {
   isActive: boolean;
   isAiGenerated: boolean;
   createdAt: string;
+}
+
+interface JobStatus {
+  id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  progress: number;
+  currentStep: string;
+  completedPlans: number;
+  totalPlans: number;
+  failedPlans: number;
+  errorMessage?: string;
+  planIds: string[];
+  duration: number;
 }
 
 export default function TherapyPlansPage({
@@ -26,9 +42,18 @@ export default function TherapyPlansPage({
   const [plans, setPlans] = useState<TherapyPlan[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [diagnosisId, setDiagnosisId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchPlans();
+    
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
   }, []);
 
   const fetchPlans = async () => {
@@ -50,12 +75,58 @@ export default function TherapyPlansPage({
       }
     } catch (error) {
       console.error("Error fetching plans:", error);
+      toast.error("فشل في تحميل الخطط العلاجية");
+    }
+  };
+
+  const pollJobStatus = async (jobId: string) => {
+    try {
+      const response = await fetch(`/api/plans/generate/status/${jobId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const job: JobStatus = data.job;
+        setJobStatus(job);
+
+        // Update UI based on status
+        if (job.status === "completed") {
+          setIsGenerating(false);
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          
+          toast.success(
+            `تم توليد ${job.completedPlans} خطط علاجية بنجاح في ${job.duration} ثانية!`,
+            {
+              duration: 5000,
+            }
+          );
+          
+          // Refresh plans
+          await fetchPlans();
+          setJobStatus(null);
+        } else if (job.status === "failed") {
+          setIsGenerating(false);
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            setPollingInterval(null);
+          }
+          
+          toast.error(`فشل في توليد الخطط: ${job.errorMessage}`, {
+            duration: 10000,
+          });
+          
+          setJobStatus(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error polling job status:", error);
     }
   };
 
   const generatePlans = async () => {
     if (!diagnosisId) {
-      alert("لم يتم العثور على تشخيص للطفل");
+      toast.error("لم يتم العثور على تشخيص للطفل");
       return;
     }
 
@@ -69,15 +140,28 @@ export default function TherapyPlansPage({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "فشل في توليد الخطط");
+        throw new Error(error.error || "فشل في بدء توليد الخطط");
       }
 
-      await fetchPlans();
-      alert("تم توليد الخطط العلاجية بنجاح!");
+      const data = await response.json();
+      const jobId = data.jobId;
+
+      toast.success("بدأت عملية توليد الخطط العلاجية", {
+        description: "سيتم التحديث تلقائياً عند اكتمال العملية",
+      });
+
+      // Start polling job status every 2 seconds
+      const interval = setInterval(() => {
+        pollJobStatus(jobId);
+      }, 2000);
+      
+      setPollingInterval(interval);
+
+      // Initial poll
+      pollJobStatus(jobId);
     } catch (error: any) {
       console.error("Error generating plans:", error);
-      alert(error.message || "حدث خطأ أثناء توليد الخطط");
-    } finally {
+      toast.error(error.message || "حدث خطأ أثناء بدء توليد الخطط");
       setIsGenerating(false);
     }
   };
@@ -92,32 +176,115 @@ export default function TherapyPlansPage({
           </p>
         </div>
 
-        {plans.length === 0 && (
+        {plans.length === 0 && !isGenerating && (
           <Button onClick={generatePlans} disabled={isGenerating}>
-            {isGenerating ? "جاري التوليد..." : "توليد 4 خطط علاجية"}
+            توليد 4 خطط علاجية
           </Button>
         )}
       </div>
 
-      {isGenerating && (
-        <Card className="p-12 text-center">
-          <p className="text-gray-500">
-            جاري توليد الخطط العلاجية... قد يستغرق هذا عدة دقائق
-          </p>
+      {/* ✅ Enhanced Progress Display */}
+      {isGenerating && jobStatus && (
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              {jobStatus.status === "pending" && (
+                <Clock className="h-6 w-6 text-blue-500 animate-pulse" />
+              )}
+              {jobStatus.status === "processing" && (
+                <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+              )}
+              {jobStatus.status === "completed" && (
+                <CheckCircle2 className="h-6 w-6 text-green-500" />
+              )}
+              {jobStatus.status === "failed" && (
+                <XCircle className="h-6 w-6 text-red-500" />
+              )}
+              
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">
+                  {jobStatus.status === "pending" && "في انتظار البدء..."}
+                  {jobStatus.status === "processing" && "جاري توليد الخطط العلاجية"}
+                  {jobStatus.status === "completed" && "اكتملت العملية بنجاح!"}
+                  {jobStatus.status === "failed" && "فشلت العملية"}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {jobStatus.currentStep}
+                </p>
+              </div>
+              
+              <Badge variant="outline" className="text-sm">
+                {jobStatus.completedPlans} / {jobStatus.totalPlans}
+              </Badge>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">التقدم</span>
+                <span className="font-semibold">{jobStatus.progress}%</span>
+              </div>
+              <Progress value={jobStatus.progress} className="h-3" />
+            </div>
+
+            {/* Time Display */}
+            {jobStatus.duration > 0 && (
+              <p className="text-xs text-gray-500 text-center">
+                الوقت المستغرق: {jobStatus.duration} ثانية
+              </p>
+            )}
+
+            {/* Failed Plans Warning */}
+            {jobStatus.failedPlans > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ فشل توليد {jobStatus.failedPlans} خطة. سيتم توليد الخطط الناجحة فقط.
+                </p>
+              </div>
+            )}
+          </div>
         </Card>
       )}
 
+      {/* Empty State */}
       {plans.length === 0 && !isGenerating && (
         <Card className="p-12 text-center">
-          <p className="text-gray-500 mb-4">لم يتم توليد خطط علاجية بعد</p>
-          <Button onClick={generatePlans}>توليد الخطط</Button>
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+              <svg
+                className="w-8 h-8 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                لم يتم توليد خطط علاجية بعد
+              </h3>
+              <p className="text-gray-600 mb-4">
+                ابدأ بتوليد 4 خطط علاجية مخصصة باستخدام الذكاء الاصطناعي
+              </p>
+            </div>
+            <Button onClick={generatePlans} size="lg">
+              توليد الخطط الآن
+            </Button>
+          </div>
         </Card>
       )}
 
+      {/* Plans Grid */}
       {plans.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {plans.map((plan) => (
-            <Card key={plan.id} className="p-6">
+            <Card key={plan.id} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
@@ -132,7 +299,7 @@ export default function TherapyPlansPage({
                 )}
               </div>
 
-              <p className="text-gray-700 mb-4">{plan.generalGoal}</p>
+              <p className="text-gray-700 mb-4 line-clamp-3">{plan.generalGoal}</p>
 
               <div className="flex gap-2">
                 <Button

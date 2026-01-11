@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/ai/openai";
-import { generateTherapyPlanPrompt } from "@/lib/ai/prompts/therapy-plan";
-import { generatePlanHtml } from "@/lib/ai/parsers/plan-parser";
+import { generateTherapyPlansAsync } from "@/lib/jobs/plan-generator";
 
+/**
+ * ✅ Optimized API Route - Async Job Initiator
+ * 
+ * Changes:
+ * - No longer waits for plan generation (returns immediately)
+ * - Creates a job and processes it in background
+ * - Client polls /api/plans/generate/status/[jobId] for updates
+ * - Reduces timeout risk from 250-350s to <2s
+ */
 export async function POST(request: NextRequest) {
   try {
     const { diagnosisId } = await request.json();
@@ -15,16 +22,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch diagnosis with child data
+    // 1. Verify diagnosis exists
     const diagnosis = await prisma.diagnosis.findUnique({
       where: { id: diagnosisId },
-      include: {
-        child: {
-          include: {
-            therapist: true,
-          },
-        },
-      },
+      select: { id: true, childId: true },
     });
 
     if (!diagnosis) {
@@ -34,120 +35,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate 4 therapy plans
-    const plans = [];
+    // 2. Check if there's already a running job for this diagnosis
+    const existingJob = await prisma.planGenerationJob.findFirst({
+      where: {
+        diagnosisId,
+        status: { in: ["pending", "processing"] },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-    for (let i = 1; i <= 4; i++) {
-      try {
-        const prompt = generateTherapyPlanPrompt(diagnosis.child, diagnosis, i);
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-5-mini",
-          messages: [
-            {
-              role: "system",
-              content:
-                "أنت أخصائي علاج نطق وتأهيل خبير متخصص في إنشاء خطط علاجية مفصلة للأطفال.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          response_format: { type: "json_object" },
-        });
-
-        const planData = JSON.parse(
-          completion.choices[0].message.content || "{}"
-        );
-
-        // Generate HTML
-        const planHtml = generatePlanHtml(
-          planData,
-          diagnosis.child.name,
-          diagnosis.child.therapist.name
-        );
-
-        // Save plan
-        const therapyPlan = await prisma.therapyPlan.create({
-          data: {
-            childId: diagnosis.childId,
-            diagnosisId: diagnosis.id,
-            planNumber: i,
-            title: planData.title || `خطة علاجية ${i}`,
-            generalGoal: planData.generalGoal || "",
-            duration: planData.duration || "3 أشهر",
-            planData: planData as any,
-            planHtml: planHtml,
-            isActive: i === 1, // First plan is active by default
-            isAiGenerated: true,
-          },
-        });
-
-        // Save stages and tasks
-        for (const stageData of planData.stages || []) {
-          const stage = await prisma.stage.create({
-            data: {
-              therapyPlanId: therapyPlan.id,
-              stageNumber: stageData.stageNumber,
-              title: stageData.title,
-              period: stageData.period,
-              description: stageData.description,
-              order: stageData.stageNumber,
-            },
-          });
-
-          // Save tasks
-          for (let j = 0; j < (stageData.tasks || []).length; j++) {
-            const taskData = stageData.tasks[j];
-            await prisma.task.create({
-              data: {
-                stageId: stage.id,
-                taskCode: taskData.taskCode,
-                taskName: taskData.taskName,
-                goal: taskData.goal,
-                question: taskData.question,
-                examples: taskData.examples,
-                performanceCriteria: taskData.performanceCriteria,
-                score: taskData.score || 0,
-                notes: taskData.notes,
-                order: j + 1,
-              },
-            });
-          }
-        }
-
-        plans.push(therapyPlan);
-      } catch (error) {
-        console.error(`Error generating plan ${i}:`, error);
-        // Continue with other plans even if one fails
-      }
-    }
-
-    if (plans.length === 0) {
+    if (existingJob) {
       return NextResponse.json(
-        { error: "فشل في توليد الخطط" },
-        { status: 500 }
+        {
+          message: "يوجد بالفعل عملية توليد قيد التنفيذ",
+          jobId: existingJob.id,
+          status: existingJob.status,
+          progress: existingJob.progress,
+        },
+        { status: 200 }
       );
     }
 
+    // 3. Create a new job
+    const job = await prisma.planGenerationJob.create({
+      data: {
+        diagnosisId,
+        childId: diagnosis.childId,
+        status: "pending",
+        progress: 0,
+        currentStep: "Initializing...",
+      },
+    });
+
+    // 4. ✅ Start background processing (non-blocking)
+    // This runs independently and doesn't block the response
+    generateTherapyPlansAsync({
+      jobId: job.id,
+      diagnosisId,
+    }).catch((error) => {
+      console.error("Background job failed:", error);
+      // Error is already handled in the generator function
+    });
+
+    // 5. Return immediately with job ID
     return NextResponse.json(
       {
-        message: `تم توليد ${plans.length} خطط بنجاح`,
-        plans,
+        message: "بدأت عملية توليد الخطط العلاجية",
+        jobId: job.id,
+        status: "pending",
+        progress: 0,
+        pollUrl: `/api/plans/generate/status/${job.id}`,
       },
-      { status: 201 }
+      { status: 202 } // 202 Accepted
     );
   } catch (error: any) {
-    console.error("Error generating therapy plans:", error);
+    console.error("Error initiating plan generation:", error);
     return NextResponse.json(
       {
-        error: "فشل في توليد الخطط العلاجية",
+        error: "فشل في بدء توليد الخطط العلاجية",
         details: error.message,
       },
       { status: 500 }
     );
   }
 }
-

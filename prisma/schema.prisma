@@ -275,3 +275,32 @@ model PlanExport {
 
   createdAt DateTime @default(now())
 }
+
+model PlanGenerationJob {
+  id          String   @id @default(cuid())
+  diagnosisId String
+  childId     String
+  
+  status      String   @default("pending") // "pending" | "processing" | "completed" | "failed"
+  progress    Int      @default(0) // 0-100
+  
+  totalPlans     Int     @default(4)
+  completedPlans Int     @default(0)
+  failedPlans    Int     @default(0)
+  
+  currentStep String? // "Generating plan 1/4", "Saving to database"
+  
+  errorMessage String? @db.Text
+  errorDetails Json?   // لتخزين تفاصيل الأخطاء
+  
+  planIds String[] // Array of generated plan IDs
+  
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([diagnosisId])
+  @@index([status])
+  @@index([createdAt])
+}
