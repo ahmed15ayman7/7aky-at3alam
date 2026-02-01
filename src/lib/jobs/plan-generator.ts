@@ -73,18 +73,15 @@ export async function generateTherapyPlansAsync({
       },
     });
 
-    // 4. Process results
-    const successfulPlans: PlanGenerationResult[] = [];
+    // 4. Process results and collect successful plan data
+    const successfulPlansData: any[] = [];
     const failedPlans: PlanGenerationResult[] = [];
 
     planResults.forEach((result, index) => {
       const planNumber = index + 1;
       if (result.status === "fulfilled") {
-        successfulPlans.push({
-          planNumber,
-          success: true,
-          planId: result.value.planId,
-        });
+        // ✅ Store the full plan data, not just the result
+        successfulPlansData.push(result.value);
       } else {
         failedPlans.push({
           planNumber,
@@ -94,7 +91,7 @@ export async function generateTherapyPlansAsync({
       }
     });
 
-    if (successfulPlans.length === 0) {
+    if (successfulPlansData.length === 0) {
       throw new Error("فشل في توليد جميع الخطط");
     }
 
@@ -102,33 +99,41 @@ export async function generateTherapyPlansAsync({
     await prisma.planGenerationJob.update({
       where: { id: jobId },
       data: {
-        currentStep: `Saving ${successfulPlans.length} plans to database...`,
+        currentStep: `Saving ${successfulPlansData.length} plans to database...`,
         progress: 70,
       },
     });
 
     const savedPlanIds = await savePlansToDatabase(
-      successfulPlans,
+      successfulPlansData,
       diagnosis,
       jobId
     );
 
     // 6. Update job as completed
+    const updateData: any = {
+      status: "completed",
+      progress: 100,
+      completedPlans: successfulPlansData.length,
+      failedPlans: failedPlans.length,
+      planIds: savedPlanIds,
+      currentStep: "Completed successfully!",
+      completedAt: new Date(),
+    };
+
+    // Only add errorDetails if there are failures
+    if (failedPlans.length > 0) {
+      updateData.errorDetails = {
+        failedPlans: failedPlans.map((p) => ({
+          planNumber: p.planNumber,
+          error: p.error,
+        })),
+      };
+    }
+
     await prisma.planGenerationJob.update({
       where: { id: jobId },
-      data: {
-        status: "completed",
-        progress: 100,
-        completedPlans: successfulPlans.length,
-        failedPlans: failedPlans.length,
-        planIds: savedPlanIds,
-        currentStep: "Completed successfully!",
-        completedAt: new Date(),
-        errorDetails:
-          failedPlans.length > 0
-            ? { failedPlans: failedPlans.map((p) => ({ planNumber: p.planNumber, error: p.error })) }
-            : {},
-      },
+      data: updateData,
     });
   } catch (error: any) {
     console.error("Plan generation job failed:", error);
@@ -259,8 +264,8 @@ async function savePlansToDatabase(
         planIds.push(therapyPlan.id);
 
         // ✅ Skip if no stages
-        if (!stages || stages.length === 0) {
-          console.warn(`Plan ${plan.planNumber} has no stages`);
+        if (!Array.isArray(stages) || stages.length === 0) {
+          console.warn(`Plan ${plan.planNumber} has no stages, skipping stage/task creation`);
           continue;
         }
 
@@ -273,20 +278,21 @@ async function savePlansToDatabase(
             console.warn(`Invalid stage data in plan ${plan.planNumber}:`, stageData);
             continue;
           }
+          
           // We'll create stages first, then tasks
           stagesToCreate.push({
             therapyPlanId: therapyPlan.id,
-            stageNumber: stageData.stageNumber || stageData.stage_number || 0,
+            stageNumber: stageData.stageNumber || stageData.stage_number || 1,
             title: stageData.title || stageData.Title || "مرحلة علاجية",
             period: stageData.period || stageData.Period || "",
             description: stageData.description || stageData.Description || null,
-            order: stageData.stageNumber || stageData.stage_number || 0,
+            order: stageData.stageNumber || stageData.stage_number || 1,
           });
 
           // Store tasks for later (after we have stage IDs)
           tasksToCreateLater.push({
-            stageNumber: stageData.stageNumber || stageData.stage_number || 0,
-            tasks: stageData.tasks || stageData.Tasks || [],
+            stageNumber: stageData.stageNumber || stageData.stage_number || 1,
+            tasks: Array.isArray(stageData.tasks) ? stageData.tasks : (Array.isArray(stageData.Tasks) ? stageData.Tasks : []),
           });
         }
 
