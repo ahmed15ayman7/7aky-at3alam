@@ -224,93 +224,144 @@ async function savePlansToDatabase(
   // Use transaction for atomicity
   await prisma.$transaction(async (tx) => {
     for (const plan of plans) {
-      const planData = plan.planData;
-      const planHtml = plan.planHtml;
+      try {
+        const planData = plan.planData;
+        const planHtml = plan.planHtml;
 
-      // Create therapy plan
-      const therapyPlan = await tx.therapyPlan.create({
-        data: {
-          childId: diagnosis.childId,
-          diagnosisId: diagnosis.id,
-          planNumber: plan.planNumber,
-          title: planData.title || `خطة علاجية ${plan.planNumber}`,
-          generalGoal: planData.generalGoal || "",
-          duration: planData.duration || "3 أشهر",
-          planData: planData as any,
-          planHtml: planHtml,
-          isActive: plan.planNumber === 1, // First plan is active by default
-          isAiGenerated: true,
-        },
-      });
+        // ✅ Validate planData exists
+        if (!planData || typeof planData !== 'object') {
+          console.error(`Plan ${plan.planNumber} has invalid planData:`, planData);
+          throw new Error(`خطة رقم ${plan.planNumber} لا تحتوي على بيانات صالحة`);
+        }
 
-      planIds.push(therapyPlan.id);
+        // ✅ Extract with fallbacks for different key formats
+        const title = planData.title || planData.Title || `خطة علاجية ${plan.planNumber}`;
+        const generalGoal = planData.generalGoal || planData.general_goal || planData.GeneralGoal || "تحسين المهارات اللغوية والتواصلية";
+        const duration = planData.duration || planData.Duration || "3 أشهر";
+        const stages = planData.stages || planData.Stages || [];
 
-      // ✅ Prepare bulk data for stages and tasks
-      const stagesToCreate: any[] = [];
-      const tasksToCreateLater: any[] = [];
-
-      for (const stageData of planData.stages || []) {
-        // We'll create stages first, then tasks
-        stagesToCreate.push({
-          therapyPlanId: therapyPlan.id,
-          stageNumber: stageData.stageNumber,
-          title: stageData.title,
-          period: stageData.period,
-          description: stageData.description,
-          order: stageData.stageNumber,
+        // Create therapy plan
+        const therapyPlan = await tx.therapyPlan.create({
+          data: {
+            childId: diagnosis.childId,
+            diagnosisId: diagnosis.id,
+            planNumber: plan.planNumber,
+            title,
+            generalGoal,
+            duration,
+            planData: planData as any,
+            planHtml: planHtml || "",
+            isActive: plan.planNumber === 1, // First plan is active by default
+            isAiGenerated: true,
+          },
         });
 
-        // Store tasks for later (after we have stage IDs)
-        tasksToCreateLater.push({
-          stageNumber: stageData.stageNumber,
-          tasks: stageData.tasks || [],
+        planIds.push(therapyPlan.id);
+
+        // ✅ Skip if no stages
+        if (!stages || stages.length === 0) {
+          console.warn(`Plan ${plan.planNumber} has no stages`);
+          continue;
+        }
+
+        // ✅ Prepare bulk data for stages and tasks
+        const stagesToCreate: any[] = [];
+        const tasksToCreateLater: any[] = [];
+
+        for (const stageData of stages) {
+          if (!stageData || typeof stageData !== 'object') {
+            console.warn(`Invalid stage data in plan ${plan.planNumber}:`, stageData);
+            continue;
+          }
+          // We'll create stages first, then tasks
+          stagesToCreate.push({
+            therapyPlanId: therapyPlan.id,
+            stageNumber: stageData.stageNumber || stageData.stage_number || 0,
+            title: stageData.title || stageData.Title || "مرحلة علاجية",
+            period: stageData.period || stageData.Period || "",
+            description: stageData.description || stageData.Description || null,
+            order: stageData.stageNumber || stageData.stage_number || 0,
+          });
+
+          // Store tasks for later (after we have stage IDs)
+          tasksToCreateLater.push({
+            stageNumber: stageData.stageNumber || stageData.stage_number || 0,
+            tasks: stageData.tasks || stageData.Tasks || [],
+          });
+        }
+
+        // ✅ Skip if no stages to create
+        if (stagesToCreate.length === 0) {
+          console.warn(`Plan ${plan.planNumber} has no valid stages to create`);
+          continue;
+        }
+
+        // ✅ Bulk create stages (3 at once instead of 3 separate queries)
+        const createdStages = await tx.stage.createManyAndReturn({
+          data: stagesToCreate,
         });
-      }
 
-      // ✅ Bulk create stages (3 at once instead of 3 separate queries)
-      const createdStages = await tx.stage.createManyAndReturn({
-        data: stagesToCreate,
-      });
+        // ✅ Now prepare bulk tasks with correct stage IDs
+        const allTasksToCreate: any[] = [];
 
-      // ✅ Now prepare bulk tasks with correct stage IDs
-      const allTasksToCreate: any[] = [];
+        createdStages.forEach((stage, stageIndex) => {
+          const stageTasks = tasksToCreateLater[stageIndex]?.tasks || [];
 
-      createdStages.forEach((stage, stageIndex) => {
-        const stageTasks = tasksToCreateLater[stageIndex].tasks;
+          if (!Array.isArray(stageTasks) || stageTasks.length === 0) {
+            console.warn(`Stage ${stage.id} has no tasks`);
+            return;
+          }
 
-        stageTasks.forEach((taskData: any, taskIndex: number) => {
-          allTasksToCreate.push({
-            stageId: stage.id,
-            taskCode: taskData.taskCode,
-            taskName: taskData.taskName,
-            goal: taskData.goal,
-            question: taskData.question,
-            examples: taskData.examples,
-            performanceCriteria: taskData.performanceCriteria,
-            score: taskData.score || 0,
-            notes: taskData.notes,
-            order: taskIndex + 1,
+          stageTasks.forEach((taskData: any, taskIndex: number) => {
+            if (!taskData || typeof taskData !== 'object') {
+              console.warn(`Invalid task data:`, taskData);
+              return;
+            }
+
+            allTasksToCreate.push({
+              stageId: stage.id,
+              taskCode: taskData.taskCode || taskData.task_code || `T${taskIndex + 1}`,
+              taskName: taskData.taskName || taskData.task_name || "مهمة",
+              goal: taskData.goal || taskData.Goal || "",
+              question: taskData.question || taskData.Question || "",
+              examples: taskData.examples || taskData.Examples || "",
+              performanceCriteria: taskData.performanceCriteria || taskData.performance_criteria || taskData.PerformanceCriteria || "",
+              score: taskData.score || 0,
+              notes: taskData.notes || taskData.Notes || null,
+              order: taskIndex + 1,
+            });
           });
         });
-      });
 
-      // ✅ Bulk create ALL tasks at once (57 tasks in 1 query instead of 57 queries!)
-      if (allTasksToCreate.length > 0) {
-        await tx.task.createMany({
-          data: allTasksToCreate,
+        // ✅ Bulk create ALL tasks at once (57 tasks in 1 query instead of 57 queries!)
+        if (allTasksToCreate.length > 0) {
+          await tx.task.createMany({
+            data: allTasksToCreate,
+          });
+        }
+
+        // Update job progress
+        await tx.planGenerationJob.update({
+          where: { id: jobId },
+          data: {
+            progress: {
+              increment: 7.5, // 30% / 4 plans
+            },
+            currentStep: `Saved plan ${plan.planNumber}/4 to database (${allTasksToCreate.length} tasks)`,
+          },
+        });
+      } catch (planError: any) {
+        console.error(`Error saving plan ${plan.planNumber}:`, planError);
+        // Continue with other plans
+        await tx.planGenerationJob.update({
+          where: { id: jobId },
+          data: {
+            failedPlans: {
+              increment: 1,
+            },
+          },
         });
       }
-
-      // Update job progress
-      await tx.planGenerationJob.update({
-        where: { id: jobId },
-        data: {
-          progress: {
-            increment: 7.5, // 30% / 4 plans
-          },
-          currentStep: `Saved plan ${plan.planNumber}/4 to database`,
-        },
-      });
     }
   });
 
