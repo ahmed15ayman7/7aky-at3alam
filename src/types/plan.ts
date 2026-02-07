@@ -27,6 +27,8 @@ export interface StageData {
   stageNumber: number;
   title: string;
   period: string;
+  duration?: string; // المدة الإجمالية للمرحلة
+  goal?: string; // الهدف الرئيسي للمرحلة
   description?: string;
   tasks: TaskData[];
 }
@@ -35,6 +37,7 @@ export interface TaskData {
   taskCode: string;
   taskName: string;
   goal: string;
+  activities?: string[] | string; // قائمة الأنشطة المقترحة
   question: string;
   examples: string;
   performanceCriteria: string;

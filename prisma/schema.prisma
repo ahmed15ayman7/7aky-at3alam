@@ -187,8 +187,10 @@ model Stage {
   therapyPlan   TherapyPlan @relation(fields: [therapyPlanId], references: [id], onDelete: Cascade)
 
   stageNumber Int // 1, 2, 3
-  title       String
+  title       String // عنوان الجلسة
   period      String // "الأسبوع 1-2"
+  duration    String? // المدة (مثل: "4 أسابيع" أو "8 جلسات")
+  goal        String? @db.Text // الهدف الرئيسي للمرحلة
   description String? @db.Text
 
   order Int
@@ -196,7 +198,10 @@ model Stage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tasks Task[]
+  tasks    Task[]
+  sessions Session[] @relation("StageSessions")
+
+  @@index([therapyPlanId])
 }
 
 model Task {
@@ -205,8 +210,9 @@ model Task {
   stage   Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
   taskCode            String // "A1", "B5", "C12"
-  taskName            String
-  goal                String  @db.Text
+  taskName            String // اسم النشاط
+  goal                String  @db.Text // هدف النشاط
+  activities          String? @db.Text // الأنشطة المقترحة (JSON array)
   question            String  @db.Text
   examples            String  @db.Text
   performanceCriteria String  @db.Text
@@ -219,6 +225,8 @@ model Task {
   updatedAt DateTime @updatedAt
 
   sessionEvaluations SessionTaskEvaluation[]
+
+  @@index([stageId])
 }
 
 model Session {
@@ -228,6 +236,9 @@ model Session {
 
   therapyPlanId String?
   therapyPlan   TherapyPlan? @relation(fields: [therapyPlanId], references: [id])
+
+  stageId String?
+  stage   Stage?  @relation("StageSessions", fields: [stageId], references: [id], onDelete: SetNull)
 
   therapistId String
   therapist   Therapist @relation(fields: [therapistId], references: [id])
@@ -245,6 +256,10 @@ model Session {
   updatedAt DateTime @updatedAt
 
   taskEvaluations SessionTaskEvaluation[]
+
+  @@index([childId])
+  @@index([therapyPlanId])
+  @@index([stageId])
 }
 
 model SessionTaskEvaluation {

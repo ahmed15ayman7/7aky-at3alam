@@ -289,35 +289,37 @@ async function savePlansToDatabase(
           const stagesToCreate: any[] = [];
           const tasksToCreateLater: any[] = [];
 
-          for (const stageData of stages) {
-            if (!stageData || typeof stageData !== "object") {
-              console.warn(
-                `Invalid stage data in plan ${plan.planNumber}:`,
-                stageData
-              );
-              continue;
-            }
-
-            // We'll create stages first, then tasks
-            stagesToCreate.push({
-              therapyPlanId: therapyPlan.id,
-              stageNumber: stageData.stageNumber || stageData.stage_number || 1,
-              title: stageData.title || stageData.Title || "مرحلة علاجية",
-              period: stageData.period || stageData.Period || "",
-              description: stageData.description || stageData.Description || null,
-              order: stageData.stageNumber || stageData.stage_number || 1,
-            });
-
-            // Store tasks for later (after we have stage IDs)
-            tasksToCreateLater.push({
-              stageNumber: stageData.stageNumber || stageData.stage_number || 1,
-              tasks: Array.isArray(stageData.tasks)
-                ? stageData.tasks
-                : Array.isArray(stageData.Tasks)
-                ? stageData.Tasks
-                : [],
-            });
+        for (const stageData of stages) {
+          if (!stageData || typeof stageData !== "object") {
+            console.warn(
+              `Invalid stage data in plan ${plan.planNumber}:`,
+              stageData
+            );
+            continue;
           }
+
+          // We'll create stages first, then tasks
+          stagesToCreate.push({
+            therapyPlanId: therapyPlan.id,
+            stageNumber: stageData.stageNumber || stageData.stage_number || 1,
+            title: stageData.title || stageData.Title || "مرحلة علاجية",
+            period: stageData.period || stageData.Period || "",
+            duration: stageData.duration || stageData.Duration || null,
+            goal: stageData.goal || stageData.Goal || null,
+            description: stageData.description || stageData.Description || null,
+            order: stageData.stageNumber || stageData.stage_number || 1,
+          });
+
+          // Store tasks for later (after we have stage IDs)
+          tasksToCreateLater.push({
+            stageNumber: stageData.stageNumber || stageData.stage_number || 1,
+            tasks: Array.isArray(stageData.tasks)
+              ? stageData.tasks
+              : Array.isArray(stageData.Tasks)
+              ? stageData.Tasks
+              : [],
+          });
+        }
 
           // ✅ Skip if no stages to create
           if (stagesToCreate.length === 0) {
@@ -350,26 +352,29 @@ async function savePlansToDatabase(
                 return;
               }
 
-              allTasksToCreate.push({
-                stageId: stage.id,
-                taskCode:
-                  taskData.taskCode ||
-                  taskData.task_code ||
-                  `T${taskIndex + 1}`,
-                taskName:
-                  taskData.taskName || taskData.task_name || "مهمة",
-                goal: taskData.goal || taskData.Goal || "",
-                question: taskData.question || taskData.Question || "",
-                examples: taskData.examples || taskData.Examples || "",
-                performanceCriteria:
-                  taskData.performanceCriteria ||
-                  taskData.performance_criteria ||
-                  taskData.PerformanceCriteria ||
-                  "",
-                score: taskData.score || 0,
-                notes: taskData.notes || taskData.Notes || null,
-                order: taskIndex + 1,
-              });
+            allTasksToCreate.push({
+              stageId: stage.id,
+              taskCode:
+                taskData.taskCode ||
+                taskData.task_code ||
+                `T${taskIndex + 1}`,
+              taskName: taskData.taskName || taskData.task_name || "مهمة",
+              goal: taskData.goal || taskData.Goal || "",
+              activities:
+                Array.isArray(taskData.activities)
+                  ? JSON.stringify(taskData.activities)
+                  : taskData.activities || null,
+              question: taskData.question || taskData.Question || "",
+              examples: taskData.examples || taskData.Examples || "",
+              performanceCriteria:
+                taskData.performanceCriteria ||
+                taskData.performance_criteria ||
+                taskData.PerformanceCriteria ||
+                "",
+              score: taskData.score || 0,
+              notes: taskData.notes || taskData.Notes || null,
+              order: taskIndex + 1,
+            });
             });
           });
 
