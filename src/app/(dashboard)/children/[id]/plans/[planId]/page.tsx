@@ -336,7 +336,7 @@ export default function PlanDetailPage({
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-secondary">{task.taskCode}</Badge>
+                          <Badge className="bg-primary">{task.taskCode}</Badge>
                           <span className="font-semibold text-gray-900">
                             {task.taskName}
                           </span>
@@ -413,7 +413,7 @@ export default function PlanDetailPage({
                     <Card key={task.id} className="p-5 bg-gradient-to-br from-gray-50 to-white">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-secondary text-base px-3 py-1">
+                          <Badge className="bg-primary text-base px-3 py-1">
                             {task.taskCode}
                           </Badge>
                           <span className="font-bold text-lg text-gray-900">

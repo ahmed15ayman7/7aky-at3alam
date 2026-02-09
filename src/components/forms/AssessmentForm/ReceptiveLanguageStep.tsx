@@ -4,8 +4,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AssessmentFormValues } from "@/lib/utils/validators";
 
 
@@ -17,6 +19,24 @@ export function ReceptiveLanguageStep() {
       <p className="text-sm text-gray-600">
         اكتب العناصر التي يعرفها الطفل، مفصولة بفاصلة
       </p>
+
+      <FormField
+        control={form.control}
+        name="chiefComplaint"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>الشكوى الرئيسية *</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="اكتب الشكوى الرئيسية للحالة..."
+                className="min-h-[100px]"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <FormField
         control={form.control}
