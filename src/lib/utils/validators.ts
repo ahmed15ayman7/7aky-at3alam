@@ -46,6 +46,7 @@ export const assessmentFormSchema = z.object({
   shyness: z.boolean().optional().default(false),
   distracted: z.boolean().optional().default(false),
   urinaryIncontinence: z.boolean().optional().default(false),
+  otherSymptoms: z.array(z.string()).default([]).optional(),
   
   // Step 5: التاريخ اللغوي
   firstWord: z.string().optional(),

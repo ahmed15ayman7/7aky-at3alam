@@ -38,6 +38,7 @@ export function generateDiagnosisPrompt(
 - خوف: ${assessment.fear ? "نعم" : "لا"}
 - خجل: ${assessment.shyness ? "نعم" : "لا"}
 - تشتت: ${assessment.distracted ? "نعم" : "لا"}
+${assessment.otherSymptoms ? `- أعراض أخرى مذكورة: ${Array.isArray(assessment.otherSymptoms) ? (assessment.otherSymptoms as any[]).join(", ") : ""}` : ""}
 
 ## التاريخ اللغوي:
 - أول كلمة: ${assessment.firstWord || "غير محدد"}

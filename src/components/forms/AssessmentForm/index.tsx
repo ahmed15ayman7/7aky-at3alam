@@ -72,6 +72,7 @@ export function AssessmentForm({ childId }: AssessmentFormProps) {
         academic: [],
         mental: [],
       },
+      otherSymptoms: [],
       chiefComplaint: "",
     },
   });

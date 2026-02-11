@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
         ...validatedData,
         receptiveLanguage: validatedData.receptiveLanguage as any,
         weaknessAreas: validatedData.weaknessAreas as any,
+        otherSymptoms: validatedData.otherSymptoms as any,
       },
       include: {
         child: true,
