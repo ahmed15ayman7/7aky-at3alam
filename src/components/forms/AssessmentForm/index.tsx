@@ -78,6 +78,9 @@ export function AssessmentForm({ childId }: AssessmentFormProps) {
   });
 
   const onSubmit = async (data: AssessmentFormValues) => {
+    if (currentStep < steps.length) {
+      return;
+    }
     setIsLoading(true);
     try {
       const response = await fetch("/api/assessment", {
