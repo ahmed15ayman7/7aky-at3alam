@@ -78,7 +78,7 @@ export function AssessmentForm({ childId }: AssessmentFormProps) {
   });
 
   const onSubmit = async (data: AssessmentFormValues) => {
-    if (currentStep < steps.length) {
+    if (currentStep < 7) {
       return;
     }
     setIsLoading(true);
